@@ -667,13 +667,11 @@ def UniversalString(k, file_path, file_bruijn, file_output):
     a = EulerianCycle(file_bruijn)
 
     b = a.split('->')
-
     value = []
     for item in b:
         if not item in value:
             value.append(item)
             value.append(item)
-    
     c = value[0]
 
     value.pop(0)

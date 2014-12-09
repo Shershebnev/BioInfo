@@ -82,10 +82,7 @@ def GenomePathStringFromList(kmers):
     # Takes first kmer entirely, for every other kmer just add one last
     # nucleotide to the string
     for item in kmers:
-        if kmers.index(item) == 0:
-            genome += item
-        else:
-            genome += item[-1]
+        genome += item[-1]
     return genome
 
 
@@ -228,6 +225,61 @@ def CheckV(adjacency_list, node):
     return len(adjacency_list[node])
 
 
+### Takes adjacency list, retuns Eulerian Cycle from this list
+##def EulerianCycle(file_input, file_output):
+##    """
+##    Generates Eulerian Cycle from adjacency list
+##    """
+##    
+##    a = open(file_input, 'r')
+##    adj_list = {}
+##    string = a.readline().rstrip('\n')
+##
+##    # File formating is: 1 -> 2,3
+##    # First parse based on " -> " element, from this uses the first
+##    # element as key. For values takes second element and splits it again
+##    # at ','. Each element is converted into int
+##    while string:
+##        adj_list[int(string.split(' -> ')[0])] = list(map(int, string.split(' -> ')[1].split(',')))
+##        string = a.readline().rstrip('\n')
+##    
+##    a.close()
+##    
+##    path = []
+##
+##    # Contains elements obtained from random walk on the graph
+##    stack = [choice(list(adj_list.keys()))]
+##
+##    # If during random walk ends up at the node which doesn't have any
+##    # out edges starts "returning back" to the nearest edge with
+##    # available out edges. At each step back latest node in stack
+##    # is popped and inserted at index 0 in the path.
+##    # At nodes, which has at least one out edge, randomly choose one of
+##    # available edges, which is then popped from adjacency list
+##    while stack:
+##        if CheckV(adj_list, stack[-1]) == 0:
+##            path.insert(0, stack.pop(-1)) # step back
+##        else:
+##            stack.append(choice(adj_list[stack[-1]])) #random choice
+##            # after "moving" one node forward uses previous node to
+##            # delete current node from the list of available edges
+##            adj_list[stack[-2]].pop(adj_list[stack[-2]].index(stack[-1]))
+##
+##    # Output format is node->node->node...
+##    path_string = ''
+##
+##    for item in path:
+##        path_string += str(item) + '->'
+##        
+##    b = open(file_output, 'w')
+##    
+##    b.write(path_string.rstrip('->'))
+##
+##    b.close()
+##    
+##    return "Azaza"
+
+
 # Takes adjacency list, retuns Eulerian Cycle from this list
 def EulerianCycle(file_input, file_output):
     """
@@ -243,7 +295,7 @@ def EulerianCycle(file_input, file_output):
     # element as key. For values takes second element and splits it again
     # at ','. Each element is converted into int
     while string:
-        adj_list[int(string.split(' -> ')[0])] = list(map(int, string.split(' -> ')[1].split(',')))
+        adj_list[string.split(' -> ')[0]] = string.split(' -> ')[1].split(',')
         string = a.readline().rstrip('\n')
     
     a.close()
@@ -272,7 +324,7 @@ def EulerianCycle(file_input, file_output):
     path_string = ''
 
     for item in path:
-        path_string += str(item) + '->'
+        path_string += item + '->'
         
     b = open(file_output, 'w')
     
@@ -404,8 +456,7 @@ def EulerianPathStr(file_input, file_output):
         string = a.readline().rstrip('\n')
         
     a.close()
-    start_edge = '000'
-    end_edge = '100'
+
     # Search for first and last edge. Compares ammount of in and out edges
     # for each node present as a key
     for key in adj_list.keys():
@@ -494,7 +545,7 @@ def EulerianPathStr(file_input, file_output):
 # before using
 def StringReconstruction(file_input, file_output):
     '''
-    Reconstruct string from the list of kmes
+    Reconstruct string from the list of kmers
     '''
     # Generate adjacency list
     DeBrujinGraphFromKmers(file_input, file_output)
@@ -510,3 +561,42 @@ def StringReconstruction(file_input, file_output):
 
     # From this list reconstruct the string
     return GenomePathStringFromList(kmers)
+
+# Generates k-universal binary circular string
+def UniversalStringReconstruction(file_input, file_output):
+    '''
+    Generates k-universal binary circular string
+    '''
+    
+    a = open(file_input, 'r')
+    k = int(a.readline().strip('\n'))
+    a.close()
+    
+    a = open(file_output, 'w')
+    
+    # Generates all possible binary kmers buy converting decimal integers
+    # to binary and adding zeros at the beginning so that length of each
+    # number is k
+    for i in range(2**k):
+        c = a.write(str(0)*(k - len(bin(i)[2:])) + bin(i)[2:] + '\n')
+        
+    a.close()
+    # Generate adjacency list
+    DeBrujinGraphFromKmers(file_output, file_output)
+
+    # Generate Eulerian Cycle
+    EulerianCycle(file_output, file_output)
+
+    # From Eulerian cycle generate a list of kmers in the same order as
+    # they appear in the path
+    a = open(file_output, 'r')
+    path = a.readline().rstrip('\n')
+    a.close()
+
+    kmers = path.split('->')
+    kmers.pop(0) # repeat deletion (we need circular uni.string, not linear)
+    string = GenomePathStringFromList(kmers)
+    a = open(file_output, 'w')
+    c = a.write(string)
+    a.close()
+    return 'Azaza'
