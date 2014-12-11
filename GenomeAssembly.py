@@ -6,6 +6,14 @@ def Prefix(string):
 def Suffix(string):
     return string[1:]
 
+def PrefixPaired(string):
+    k = len(string.split('|')[0])
+    return (string[ : k - 1] + '|' + string[k + 1 : 2 * k])
+
+def SuffixPaired(string):
+    k = len(string.split('|')[0])
+    return (string[1 : k] + '|' + string[k + 2 : 2 * k + 1])
+
 # Generates list of all kmers present in a string, sorted alphabetically
 # Rewrites the output file. If needs otherwise, change mode to "a"
 def Composition(input_file, output_file):
@@ -600,3 +608,113 @@ def UniversalStringReconstruction(file_input, file_output):
     c = a.write(string)
     a.close()
     return 'Azaza'
+
+# Generate string from path obtained from Paired De Bruijn graph.
+# Format of list is ['kmer|kmer', ...].
+# Generates two strings, first - from first nucleotides of first kmer,
+# last - from first nucleotide of second kmer + all nucleotides from the
+# very last second kmer. As an output uses first k + d + 1 nucleotides from
+# first string, then the hole 'last' string
+def StringFromPairedDeBrujin(path, k, d):
+    """
+    Generate string from path obtained from Paired De Bruijn graph.
+    """
+    
+    first = ''
+    last = ''
+    
+    for item in path:
+        first += item[0]
+        last += item[k + 1]
+
+    # Add nucleotides from the very last second kmer
+    last += path[-1][k + 2:]
+    
+    return first[: k + d + 1] + last
+    
+
+# Take paired reads in format 'read|read\n', reconstruct a string from them
+# Uses the same algorithm as in EulerianPath: find start and end nodes, add
+# edge between them, find Eulerian Cycle, delete last 'step' in cycle
+def PairedDeBrujin(file_input, file_output):
+    '''
+    Reconstruct string from paired reads. Format for reads in
+    file: read|read\n
+    '''
+    a = open(file_input, 'r')
+    k_and_d = a.readline().rstrip('\n').split(' ')
+    paired = a.readline().rstrip('\n')
+    
+    kmers = []
+    while paired:
+        kmers.append(paired)
+        paired = a.readline().rstrip('\n')
+        
+    a.close()
+    
+    k = int(k_and_d[0])
+    d = int(k_and_d[1])
+
+    connections = {}
+
+    # Generates connections between Prefixes as keys and suffixes as values
+    for kmer in kmers:
+        if not PrefixPaired(kmer) in connections:
+            connections[PrefixPaired(kmer)] = [SuffixPaired(kmer)]
+        else:
+            connections[PrefixPaired(kmer)].append(SuffixPaired(kmer))
+
+
+    # Search for first and last edge. Compares ammount of in and out edges
+    # for each node present as a key
+    for key in connections.keys():
+        in_edge = 0
+        out_edge = 0
+        for value in connections.values():
+            if key in value:
+                in_edge += 1
+            out_edge = len(connections[key])
+        if in_edge > out_edge:
+            end_edge = key
+        elif in_edge < out_edge:
+            start_edge = key
+            
+    # In case node is presented only in values (i.e. has no in edges)
+    for value in connections.values():
+        for item in value:
+            if not item in connections.keys():
+                end_edge = item
+                
+    # Add edge end_edge -> start_edge
+    if not end_edge in connections:
+        connections[end_edge] = [start_edge]
+    else:
+        connections[end_edge].append(start_edge)
+        
+    path = []
+
+    stack = [start_edge]
+
+    # Same algorithm as in above functions
+    while stack:
+        if CheckV(connections, stack[-1]) == 0:
+            path.insert(0, stack.pop(-1)) # step back
+        else:
+            stack.append(choice(connections[stack[-1]])) #random choice
+            # after "moving" one node forward uses previous node to
+            # delete current node from the list of available edges
+            connections[stack[-2]].pop(connections[stack[-2]].index(stack[-1]))
+            
+    c = path.pop(-1)
+
+    # Function to reconstruct string from the path
+    string = StringFromPairedDeBrujin(path, k, d)
+
+    a = open(file_output, 'w')
+    g = a.write(string)
+    a.close()
+
+    return "Azaza"
+"""
+recursively connect reads into pairs
+"""
