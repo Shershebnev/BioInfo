@@ -715,6 +715,3 @@ def PairedDeBrujin(file_input, file_output):
     a.close()
 
     return "Azaza"
-"""
-recursively connect reads into pairs
-"""
