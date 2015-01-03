@@ -162,7 +162,7 @@ def OutputLCS(v, w):
 
 
 
-def LCSBacktrackGlobal(v, w, Scoring_Matrix = BLOSUM62, sigma = -5):
+def LCSBacktrackGlobal(v, w, sigma = -5, Scoring_Matrix = BLOSUM62):
 
     s = [[0]*(len(w) + 1) for k in range(len(v) + 1)]
     backtrack = [[0]*(len(w) + 1) for k in range(len(v) + 1)]
@@ -191,7 +191,7 @@ def LCSBacktrackGlobal(v, w, Scoring_Matrix = BLOSUM62, sigma = -5):
     return backtrack#, s
 
 
-def GlobalAlignment(v, w, Scoring_Matrix = BLOSUM62, sigma = -5):
+def GlobalAlignment(v, w, sigma = -5, Scoring_Matrix = BLOSUM62):
 ##    backtrack_s = LCSBacktrackGlobal(v, w)
 ##    backtrack = backtrack_s[0]
 ##    s = backtrack_s[1]
@@ -255,30 +255,77 @@ def GlobalAlignment(v, w, Scoring_Matrix = BLOSUM62, sigma = -5):
 
 
 
-def LCSBacktrackLocal(v, w, Scoring_Matrix = PAM250, sigma = -5):
+def LCSBacktrackLocal(v, w, sigma = -5, Scoring_Matrix = PAM250):
 
     s = [[0]*(len(w) + 1) for k in range(len(v) + 1)]
-    backtrack = [[0]*(len(w)) for k in range(len(v))]
-
+    backtrack = [[0]*(len(w) + 1) for k in range(len(v) + 1)]
+    
 ##    for i in range(1, len(s)):
 ##        s[i][0] = s[i - 1][0] + sigma
 ##    for i in range(1, len(s[0])):
 ##        s[0][i] = s[0][i-1] + sigma
     
+    # adds additional row and column
+    for i in range(1, len(backtrack)):
+        backtrack[i][0] = 'down'
+    for i in range(1, len(backtrack[0])):
+        backtrack[0][i] = 'right'
+        
     for i in range(1, len(v) + 1):
         for j in range(1, len(w) + 1):
             s[i][j] = max(0, s[i-1][j] + sigma, s[i][j-1] + sigma, s[i-1][j-1] + Scoring_Matrix[v[i - 1]][w[j - 1]])
 
             if s[i][j] == s[i-1][j] + sigma:
-                backtrack[i-1][j-1] = 'down'
+                backtrack[i][j] = 'down'
             elif s[i][j] == s[i][j-1] + sigma:
-                backtrack[i-1][j-1] = 'right'
+                backtrack[i][j] = 'right'
             elif s[i][j] == s[i-1][j-1] + Scoring_Matrix[v[i - 1]][w[j - 1]]:
-                backtrack[i-1][j-1] = 'diagonal'
+                backtrack[i][j] = 'diagonal'
                 
     return backtrack, s
 
-##
-##def LocalAlignment(v, w, sigma = -5, Scoring_matrix = PAM250):
-##
-##    
+
+def LocalAlignment(v, w, sigma = -5, Scoring_Matrix = PAM250):
+
+    backtrack_s = LCSBacktrackLocal(v, w)
+    backtrack = backtrack_s[0]
+    s = backtrack_s[1]
+
+    max_i = 0
+    max_j = 0
+    maximum_score = -float('inf')
+    for i in range(len(s)):
+        for j in range(len(s[0])):
+            if s[i][j] >= maximum_score:
+                maximum_score = s[i][j]
+                max_i = i
+                max_j = j
+                
+    score = maximum_score
+    i = max_i
+    j = max_j
+    v_string = ''
+    w_string = ''
+    
+    while backtrack[i][j]:
+        if i > 0 and backtrack[i][j] == 'down':
+            v_string += v[i - 1]
+            w_string += '-'
+            #s_score = s[i][j]
+            i -= 1
+            score += sigma
+        elif j > 0 and backtrack[i][j] == 'right':
+            v_string += '-'
+            w_string += w[j - 1]
+            #s_score = s[i][j]
+            j -= 1
+            score += sigma
+        else:
+            v_string += v[i - 1]
+            w_string += w[j - 1]
+            #s_score = s[i][j]
+            score += Scoring_Matrix[v[i - 1]][w[j - 1]]
+            i -= 1
+            j -= 1
+            
+    return v_string[::-1], w_string[::-1], maximum_score
