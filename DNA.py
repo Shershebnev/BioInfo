@@ -292,7 +292,7 @@ def ClumpFinding(genome, k, L, t):
 
     # Deletes the last space from the string
     
-    #print("--- %s seconds ---" % (time.time() - start_time))
+    print("--- %s seconds ---" % (time.time() - start_time))
     
     return patterns.rstrip()
 
