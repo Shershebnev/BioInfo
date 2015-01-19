@@ -173,7 +173,7 @@ def ReverseComplement(pattern):
     Produces the reverse complement of a string. NB result is printed in reverse
     direction (i.e. for ATGC the result will be not TACG, but GCAT)
 
-    >>> ReverseComplement(AAAACCCGGT)
+    >>> ReverseComplement('AAAACCCGGT')
     ACCGGGTTTT
     '''
 
