@@ -1,6 +1,7 @@
 from random import choice as choice
 from copy import deepcopy as deepcopy
 
+matrix_size = 0
 
 
 def distance_between_leaves(file_input, file_output):
@@ -116,20 +117,71 @@ def limb_length(j, matrix):
     return int(length), min_i, min_k
 
 
+##def adjacency(first_node, second_node):
+##    return str(first_node) + '->' + str(second_node)
+##
+##
+##def additive_phylogeny(matrix):
+##    global matrix_size, current_node_number
+##    if matrix_size == 0:
+##        matrix_size = len(matrix)
+##        current_node_number = matrix_size + 1
+##    n = len(matrix)
+##    if n == 2:
+##        return {'0->1' : matrix[0][1]}, ['0->1']
+##    limb = limb_length(n, matrix)
+##    for i in range(len(matrix) - 1):
+##        matrix[i][n] -= limb[0]
+##        matrix[n][i] = matrix[i][n]
+##    ink = [0]*3
+##    for i in range(len(matrix) - 1):
+##        for n in range(len(matrix) - 1):
+##            for k in range(len(matrix) - 1):
+##                if matrix[i][k] == (matrix[i][n] + matrix[n][k]) and \
+##                   matrix[i][k] * matrix[i][n] * matrix[n][k] != 0:
+##                    ink[0] = i
+##                    ink[1] = n
+##                    ink[2] = k
+##    x = matrix[ink[0]][ink[1]]
+##    matrix_copy = deepcopy(matrix)
+##    matrix_copy.pop(ink[1])
+##    for item in matrix_copy:
+##        item.pop(ink[1])
+##    T = additive_phylogeny(matrix_copy)
+##    if len(matrix) == matrix_size:
+##        v = matrix_size - 1
+##    else:
+##        v = current_node_number
+##        current_node_number += 1
+##    if len(T[0]) == 1:
+##        adj = T[1][0]
+##        adj_nodes = adj.split('->')
+##        weight = list(T[0].items())[0]
+##        T[0].clear()
+##        T[0][adjacency(adj_nodes[0], v)] = weight - (matrix[0][-2] - matrix[0][-1])
+##        T[0][adjacency(adj_nodes[1], v)] = matrix[0][-2] - matrix[0][-1]
+##        T[1].clear()
+##        T[1].extend(adjacency(adj_nodes[0], v), adjacency(adj_nodes[1], v))
+##        if last_nodes[0] < last_nodes[1]:
+##            last_node = last_nodes[1]
+##        else:
+##            last_node = last_nodes[0]
+##        T[0][adjacency(last_node, current_node_number)] = x
+##        T[1].append(adjacency(last_node, current_node_number))
+##    else if len(matrix) != matrix_size:
+##        last_added = T[1][-1]
+##        last_nodes = last_added.split('->')
+##        if last_nodes[0] < last_nodes[1]:
+##            last_node = last_nodes[1]
+##        else:
+##            last_node = last_nodes[0]
+##        T[0][adjacency(last_node, v)] = matrix[0][-2] - matrix[0][-1]
+##        for key in T[0].keys():
+##            if last_node in key:
+##                T[0][key] -= T[0][adjacency(last_node, v)]
+##        T[1].append(adjacency(last_node, v))
+##        
 
-def additive_phylogeny(n, matrix):
-    if n == 2:
-        return matrix[1][1]
-    length_limb = limb_length(n, matrix)
-    for j in range(n - 1):
-        matrix[j][n] = matrix[j][n] - length_limb[0]
-        matrix[n][j] = matrix[j][n]
-    i = length_limb[1]
-    k = length_limb[2]
-    x = matrix[i][n]
-    a = matrix.pop(n)
-    for row in range(len(matrix)):
-        a = matrix[row].pop(n)
-    T = additive_phylogeny(n - 1, matrix)
-    
-    
+
+def upgma(matrix):
+    clusters = [i for i in range(len(matrix))]  
